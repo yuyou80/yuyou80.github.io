@@ -53,6 +53,18 @@ Follow the following steps:
     </item>
     
     <item>
+      <title>mysql索引</title>
+      <link>https://yuyou80.github.io/posts/mysql%E7%B4%A2%E5%BC%95/</link>
+      <pubDate>Mon, 10 Mar 2014 00:00:00 +0000</pubDate>
+      
+      <guid>https://yuyou80.github.io/posts/mysql%E7%B4%A2%E5%BC%95/</guid>
+      <description>MYSQL索引 这是最近一位老朋友去百度面试，应该是面试资深工程师岗位，他跟我讲被问到mysql索引知识点？其实面试官主要还是考察对mysql的性能调优相关，问理论知识其实也是想知道你对原理的认知，从而确认你是否有相关的调优经验。朋友说他回答得还行，然后很顺利的进行了三面四面。那么本文将跟大家一起来聊一聊这个如何回答面试官的这个问题！
+聊聊索引分类 按数据结构分类可分为：B+TREE(树)索引、HASH索引、FULLTEXT索引；按索引种类可以分为：普通索引、主键索引、唯一索引、全文索引、组合索引、一级索引、二级索引。
+这两个有什么区别嘛？肯定有：一个是索引实现类型；一个是创建索引用到的类型
+ 普通索引：(INDEX)建立在普通字段上的索引被称为普通索引  ALTER TABLE `table_name` ADD INDEX idx_name ( `user_name` )  主键索引：(PRIMARY KEY)建立在主键上的索引被称为主键索引，一张数据表只能有一个主键索引，索引列值不允许有空值  ALTER TABLE `table_name` ADD PRIMARY KEY ( `user_id` )  唯一索引：(UNIQUE)建立在 unique 字段上的索引被称为唯一索引，一张表可以有多个唯一索引，索引列值允许为空，列值中出现多个空值不会发生重复冲突  ALTER TABLE `table_name` ADD UNIQUE (`user_name`) 全文索引：(FULLTEXT)建立在 varchar、char、text列上的全文索引；配合 match against 使用，类似一个搜索引擎，数据大时，很占用空间且耗时  ALTER TABLE `table_name` ADD FULLTEXT ( `user_desc` ) 组合索引：建立在多列上的索引叫组合索引，遵循”最左前缀“原则  ALTER TABLE `table_name` ADD INDEX idx_name_age ( `user_name`, `user_age` ) 一级索引：索引和数据存储在一起，都存储在同一个B+tree中的叶子节点。一般主键索引都是一级索引 二级索引：二级索引树的叶子节点存储的是主键而不是数据。也就是说，在找到索引后，得到对应的主键，再回到一级索引中找主键对应的数据记录  注意点：切不可滥用索引；切不可建立太多的索引；切不可建立重复索引</description>
+    </item>
+    
+    <item>
       <title>Test 9</title>
       <link>https://yuyou80.github.io/posts/test-9/</link>
       <pubDate>Thu, 09 Jan 1012 00:00:00 +0000</pubDate>

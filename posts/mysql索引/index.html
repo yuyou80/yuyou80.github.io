@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en-us">
+  <head>
+    <title>mysql索引 // 有度规约</title>
+    <link rel="shortcut icon" href="/favicon.ico" />
+    <meta charset="utf-8" />
+    <meta name="generator" content="Hugo 0.84.3" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="John Doe" />
+    <meta name="description" content="" />
+    <link rel="stylesheet" href="https://yuyou80.github.io/css/main.min.88e7083eff65effb7485b6e6f38d10afbec25093a6fac42d734ce9024d3defbd.css" />
+
+    
+    <meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="mysql索引"/>
+<meta name="twitter:description" content="MYSQL索引 这是最近一位老朋友去百度面试，应该是面试资深工程师岗位，他跟我讲被问到mysql索引知识点？其实面试官主要还是考察对mysql的性能调优相关，问理论知识其实也是想知道你对原理的认知，从而确认你是否有相关的调优经验。朋友说他回答得还行，然后很顺利的进行了三面四面。那么本文将跟大家一起来聊一聊这个如何回答面试官的这个问题！
+聊聊索引分类 按数据结构分类可分为：B&#43;TREE(树)索引、HASH索引、FULLTEXT索引；按索引种类可以分为：普通索引、主键索引、唯一索引、全文索引、组合索引、一级索引、二级索引。
+这两个有什么区别嘛？肯定有：一个是索引实现类型；一个是创建索引用到的类型
+ 普通索引：(INDEX)建立在普通字段上的索引被称为普通索引  ALTER TABLE `table_name` ADD INDEX idx_name ( `user_name` )  主键索引：(PRIMARY KEY)建立在主键上的索引被称为主键索引，一张数据表只能有一个主键索引，索引列值不允许有空值  ALTER TABLE `table_name` ADD PRIMARY KEY ( `user_id` )  唯一索引：(UNIQUE)建立在 unique 字段上的索引被称为唯一索引，一张表可以有多个唯一索引，索引列值允许为空，列值中出现多个空值不会发生重复冲突  ALTER TABLE `table_name` ADD UNIQUE (`user_name`) 全文索引：(FULLTEXT)建立在 varchar、char、text列上的全文索引；配合 match against 使用，类似一个搜索引擎，数据大时，很占用空间且耗时  ALTER TABLE `table_name` ADD FULLTEXT ( `user_desc` ) 组合索引：建立在多列上的索引叫组合索引，遵循”最左前缀“原则  ALTER TABLE `table_name` ADD INDEX idx_name_age ( `user_name`, `user_age` ) 一级索引：索引和数据存储在一起，都存储在同一个B&#43;tree中的叶子节点。一般主键索引都是一级索引 二级索引：二级索引树的叶子节点存储的是主键而不是数据。也就是说，在找到索引后，得到对应的主键，再回到一级索引中找主键对应的数据记录  注意点：切不可滥用索引；切不可建立太多的索引；切不可建立重复索引"/>
+
+    <meta property="og:title" content="mysql索引" />
+<meta property="og:description" content="MYSQL索引 这是最近一位老朋友去百度面试，应该是面试资深工程师岗位，他跟我讲被问到mysql索引知识点？其实面试官主要还是考察对mysql的性能调优相关，问理论知识其实也是想知道你对原理的认知，从而确认你是否有相关的调优经验。朋友说他回答得还行，然后很顺利的进行了三面四面。那么本文将跟大家一起来聊一聊这个如何回答面试官的这个问题！
+聊聊索引分类 按数据结构分类可分为：B&#43;TREE(树)索引、HASH索引、FULLTEXT索引；按索引种类可以分为：普通索引、主键索引、唯一索引、全文索引、组合索引、一级索引、二级索引。
+这两个有什么区别嘛？肯定有：一个是索引实现类型；一个是创建索引用到的类型
+ 普通索引：(INDEX)建立在普通字段上的索引被称为普通索引  ALTER TABLE `table_name` ADD INDEX idx_name ( `user_name` )  主键索引：(PRIMARY KEY)建立在主键上的索引被称为主键索引，一张数据表只能有一个主键索引，索引列值不允许有空值  ALTER TABLE `table_name` ADD PRIMARY KEY ( `user_id` )  唯一索引：(UNIQUE)建立在 unique 字段上的索引被称为唯一索引，一张表可以有多个唯一索引，索引列值允许为空，列值中出现多个空值不会发生重复冲突  ALTER TABLE `table_name` ADD UNIQUE (`user_name`) 全文索引：(FULLTEXT)建立在 varchar、char、text列上的全文索引；配合 match against 使用，类似一个搜索引擎，数据大时，很占用空间且耗时  ALTER TABLE `table_name` ADD FULLTEXT ( `user_desc` ) 组合索引：建立在多列上的索引叫组合索引，遵循”最左前缀“原则  ALTER TABLE `table_name` ADD INDEX idx_name_age ( `user_name`, `user_age` ) 一级索引：索引和数据存储在一起，都存储在同一个B&#43;tree中的叶子节点。一般主键索引都是一级索引 二级索引：二级索引树的叶子节点存储的是主键而不是数据。也就是说，在找到索引后，得到对应的主键，再回到一级索引中找主键对应的数据记录  注意点：切不可滥用索引；切不可建立太多的索引；切不可建立重复索引" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://yuyou80.github.io/posts/mysql%E7%B4%A2%E5%BC%95/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2014-03-10T00:00:00&#43;00:00" />
+<meta property="article:modified_time" content="2014-03-10T00:00:00&#43;00:00" />
+
+
+
+  </head>
+  <body>
+    <header class="app-header">
+      <a href="https://yuyou80.github.io/"><img class="app-header-avatar" src="/avatar.jpg" alt="John Doe" /></a>
+      <h1>有度规约</h1>
+      <nav class="app-header-menu">
+          <a class="app-header-menu-item" href="/">Home</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/tags/">Tags</a>
+             - 
+          
+          <a class="app-header-menu-item" href="/about/">About</a>
+      </nav>
+      <p>newrank</p>
+      <div class="app-header-social">
+        
+          <a href="https://github.com/gohugoio" target="_blank" rel="noreferrer noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-github">
+  <title>Github</title>
+  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+</svg>
+          </a>
+        
+          <a href="https://twitter.com/gohugoio" target="_blank" rel="noreferrer noopener">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-twitter">
+  <title>Twitter</title>
+  <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"></path>
+</svg>
+          </a>
+        
+      </div>
+    </header>
+    <main class="app-container">
+      
+  <article class="post">
+    <header class="post-header">
+      <h1 class ="post-title">mysql索引</h1>
+      <div class="post-meta">
+        <div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-calendar">
+  <title>calendar</title>
+  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>
+</svg>
+          Mar 10, 2014
+        </div>
+        <div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-clock">
+  <title>clock</title>
+  <circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>
+</svg>
+          12 min read
+        </div>
+        <div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tag">
+  <title>tag</title>
+  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line>
+</svg>
+              <a class="tag" href="https://yuyou80.github.io/tags/hugo/">hugo</a>
+              <a class="tag" href="https://yuyou80.github.io/tags/jekyll/">jekyll</a>
+        </div>
+      </div>
+    </header>
+    <div class="post-content">
+      <h2 id="heading"></h2>
+<h1 id="mysql索引">MYSQL索引</h1>
+<p>这是最近一位老朋友去百度面试，应该是面试资深工程师岗位，他跟我讲被问到mysql索引知识点？其实面试官主要还是考察对mysql的性能调优相关，问理论知识其实也是想知道你对原理的认知，从而确认你是否有相关的调优经验。朋友说他回答得还行，然后很顺利的进行了三面四面。那么本文将跟大家一起来聊一聊这个如何回答面试官的这个问题！</p>
+<p><img src="https://p3-tt.byteimg.com/origin/pgc-image/ad27c07f976744eeb26c4e27f6d48195?from=pc" alt="百度Java后端二面：MySQL索引老大难问题，万字长文精讲总结"></p>
+<h2 id="聊聊索引分类">聊聊索引分类</h2>
+<p><img src="https://p6-tt.byteimg.com/origin/pgc-image/9be39d7707454832a78be7d83e2cf2ed?from=pc" alt="百度Java后端二面：MySQL索引老大难问题，万字长文精讲总结"></p>
+<p>按<strong>数据结构</strong>分类可分为：<strong>B+TREE(树)索引</strong>、<strong>HASH索引</strong>、<strong>FULLTEXT索引</strong>；按<strong>索引种类</strong>可以分为：<strong>普通索引</strong>、<strong>主键索引</strong>、<strong>唯一索引</strong>、<strong>全文索引</strong>、<strong>组合索引</strong>、<strong>一级索引</strong>、<strong>二级索引</strong>。</p>
+<p>这两个有什么区别嘛？肯定有：<strong>一个是索引实现类型；一个是创建索引用到的类型</strong></p>
+<ul>
+<li><strong>普通索引</strong>：(<strong>INDEX</strong>)建立在普通字段上的索引被称为普通索引</li>
+</ul>
+<pre><code>ALTER TABLE `table_name` ADD INDEX idx_name ( `user_name` ) 
+</code></pre><ul>
+<li><strong>主键索引</strong>：(<strong>PRIMARY KEY</strong>)建立在主键上的索引被称为主键索引，一张数据表只能有一个主键索引，索引列值不允许有空值</li>
+</ul>
+<pre><code>ALTER TABLE `table_name` ADD PRIMARY KEY ( `user_id` ) 
+</code></pre><ul>
+<li><strong>唯一索引</strong>：(<strong>UNIQUE</strong>)建立在 unique 字段上的索引被称为唯一索引，一张表可以有多个唯一索引，索引列值允许为空，列值中出现多个空值不会发生重复冲突</li>
+</ul>
+<pre><code>ALTER TABLE `table_name` ADD UNIQUE (`user_name`)
+</code></pre><ul>
+<li><strong>全文索引</strong>：(<strong>FULLTEXT</strong>)建立在 varchar、char、text列上的全文索引；配合 match against 使用，类似一个搜索引擎，数据大时，很占用空间且耗时</li>
+</ul>
+<pre><code>ALTER TABLE `table_name` ADD FULLTEXT ( `user_desc` )
+</code></pre><ul>
+<li><strong>组合索引</strong>：建立在多列上的索引叫组合索引，遵循”最左前缀“原则</li>
+</ul>
+<pre><code>ALTER TABLE `table_name` ADD INDEX idx_name_age ( `user_name`, `user_age` )
+</code></pre><ul>
+<li><strong>一级索引</strong>：索引和数据存储在一起，都存储在同一个B+tree中的叶子节点。一般主键索引都是一级索引</li>
+<li><strong>二级索引</strong>：二级索引树的叶子节点存储的是主键而不是数据。也就是说，在找到索引后，得到对应的主键，再回到一级索引中找主键对应的数据记录</li>
+</ul>
+<p><strong>注意点</strong>：切不可滥用索引；切不可建立太多的索引；切不可建立重复索引</p>
+<p>① 索引虽然提高查询速度，但同时会降低更新表的速度</p>
+<p>② 建立索引会占用磁盘空间的索引文件；尽量减少在大表上建立过多的组合索引；</p>
+<p><strong>上面图带上一级二级索引是为了让大家更加了解索引结构 B+ Tree 的结构图可以很清楚索引是如何存储构建的且分层</strong>。</p>
+<h2 id="索引覆盖">索引覆盖</h2>
+<p><strong>顾名思义</strong>：覆盖索引就是查询的数据列只需要从<strong>索引中就可以获取到</strong>，<strong>不用再读取数据行</strong>；再通俗易懂地讲，我们sql查询的<strong>数据要被所建的索引能覆盖</strong>。</p>
+<p>Mysql中只能使用 B+Tree 索引做覆盖索引；想必大家都知道 B+Tree 的原理吧？这里不再赘述。说下用处：</p>
+<ul>
+<li>无需回表，查询速度快</li>
+<li>减少系统调用和数据拷贝到缓存区等待时间</li>
+</ul>
+<p>看到这这里知道为啥很多大厂不建议使用 <strong>select * from xxx</strong> 查询了(<strong>千万不要听别人说</strong> 可以使用select * 我待了几个大厂从来不建议这样操作)，目的就是：<strong>尽量能避免回表和减少IO的大小</strong></p>
+<h2 id="怎么确认sql触发索引覆盖">怎么确认sql触发索引覆盖</h2>
+<p>触发索引覆盖：我们可以通过 <strong>explain sql 语句</strong> 输出结果为 <strong>Using Index</strong> 时，就能够触发索引覆盖。</p>
+<p>① 那么我们看下 <strong>Explain</strong> 关键词分析：</p>
+<table>
+<thead>
+<tr>
+<th><strong>常见类型</strong></th>
+<th><strong>描述</strong></th>
+<th><strong>备注说明</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Using Index</td>
+<td>使用了索引覆盖，不需要回表查询</td>
+<td>无</td>
+</tr>
+<tr>
+<td>Using Index Condition</td>
+<td>使用了索引下推(5.6+版本)</td>
+<td>无</td>
+</tr>
+<tr>
+<td>Using Where</td>
+<td>使用where条件在Sever层过滤数据</td>
+<td>并非最佳</td>
+</tr>
+<tr>
+<td>Using Filesort</td>
+<td>不能利用索引树而采取了额外的排序操作</td>
+<td>需要优化</td>
+</tr>
+<tr>
+<td>Using Temporary</td>
+<td>使用了临时表保存了中间结果集</td>
+<td>需要优化</td>
+</tr>
+<tr>
+<td>Using Join Buffer</td>
+<td>链表查询时使用了循环嵌套扫描</td>
+<td>需要优化</td>
+</tr>
+</tbody>
+</table>
+<p>② 索引覆盖例子</p>
+<pre><code>## 创建一张测试索引覆盖的临时表，并对昵称  user_name 创建了索引
+
+CREATE TABLE `user` (
+  `user_id`   int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '用户id',
+  `user_name` varchar(125)     NOT NULL DEFAULT ''     COMMENT '用户昵称',
+  `user_pwd`  varchar(64)      NOT NULL DEFAULT ''     COMMENT '用户密码',
+  `user_sex`  tinyint(1)       NOT NULL DEFAULT '0'    COMMENT '用户性别 0-保密；1-男；2-女',
+  `create_at` int(10)          NOT NULL DEFAULT '0'    COMMENT '创建时间',
+  PRIMARY KEY (`user_id`),
+  KEY `idx_name` (`user_name`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户表';
+</code></pre><p><strong>来看下第一个sql语句</strong>：</p>
+<pre><code>mysql&gt; explain select user_id,user_name from user where user_name = '李阿沐' limit 1;
++----+-------------+-------+------------+------+---------------+----------+---------+-------+------+----------+-------------+
+| id | select_type | table | partitions | type | possible_keys | key      | key_len | ref   | rows | filtered | Extra       |
++----+-------------+-------+------------+------+---------------+----------+---------+-------+------+----------+-------------+
+|  1 | SIMPLE      | user  | NULL       | ref  | idx_name      | idx_name | 377     | const |    1 |   100.00 | Using index |
++----+-------------+-------+------------+------+---------------+----------+---------+-------+------+----------+-------------+
+1 row in set, 1 warning (0.01 sec)
+</code></pre><p>我们从上面执行的结果可以看到 Extra = &lsquo;Using index&rsquo;，使用了 idx_name 普通索引项。我们知道 B+Tree 叶子节点中 索引也会作为数据页，存放的是普通目录项记录；idx_name的索引树里面存储了主键ID和user_name，这样就完全不需要回表操作，查询效率比较高。</p>
+<p><strong>再来看一个sql语句</strong>：</p>
+<pre><code>## 例如有时我们会通过用户昵称查询用户的pwd
+mysql&gt; explain select user_pwd from user where user_name = '李阿沐';
++----+-------------+-------+------------+------+---------------+----------+---------+-------+------+----------+-------+
+| id | select_type | table | partitions | type | possible_keys | key      | key_len | ref   | rows | filtered | Extra |
++----+-------------+-------+------------+------+---------------+----------+---------+-------+------+----------+-------+
+|  1 | SIMPLE      | user  | NULL       | ref  | idx_name      | idx_name | 377     | const |    1 |   100.00 | NULL  |
++----+-------------+-------+------------+------+---------------+----------+---------+-------+------+----------+-------+
+1 row in set, 1 warning (0.01 sec)
+</code></pre><p>我们来看下流程走向：</p>
+<ul>
+<li>通过 <strong>idx_name</strong> 索引树，从树上找到 user_name = &lsquo;李阿沐&rsquo; 对应的主键id</li>
+<li>通过 <strong>回表操作</strong> 在主键索引树上找到满足条件的数据，返回</li>
+</ul>
+<p>虽然sql语句命中了idx_name索引，尽管索引叶子节点存储了主键user_id，很遗憾并没有存储 user_pwd 字段，所以需要回表查询才可以拿到这个值；那么这种操作就不符合索引覆盖原理，因为经过了回表，从而影响了查询效率。跟索引覆盖理念完全不合。</p>
+<p>在这里有必要顺便解释一下 explain 结果集个字段的意思，加深下印象（简单扫一眼，看看下，很少人问）：</p>
+<table>
+<thead>
+<tr>
+<th><strong>字段</strong></th>
+<th><strong>描述说明</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>id</td>
+<td>SELECT识别符，每个SELECT子句的标识id</td>
+</tr>
+<tr>
+<td>select_type</td>
+<td>SELECT类型；例如：① simple简单select(不使用UNION或子查询)；② primary最外面的select查询；③ union中的第二个或后面的select查询语句；④ dependent union的第二个或后面的查询语句,取决于外面的查询；⑤ union result的结果集；⑥ subquery子查询中的第一个select查询；⑦ dependent subquery子查询中的第一个select查询，取决于外面的查询；⑧ derived导出表的select查询(from子句的子查询)</td>
+</tr>
+<tr>
+<td>table</td>
+<td>当前表明</td>
+</tr>
+<tr>
+<td>partitions</td>
+<td>显示查询访问的分区</td>
+</tr>
+<tr>
+<td>type</td>
+<td>当前表内的联接类型；例如：① system表仅有一行；② const表最多有一个匹配行；③ eq_ref对于每个来自于前面的表的行组合,从该表中读取一行；④ ref:对于每个来自于前面的表的行组合,所有有匹配索引值的行将从这张表中读取；⑤ ref_or_null同ref，但添加了mysql可以专门搜索包含NULL值的行；⑥ index_merge使用了索引合并优化方法；⑦ range只检索给定范围的行,使用一个索引来选择行；⑧ index该联接类型与ALL相同,除了只有索引树被扫描。这通常比ALL快,因为索引文件通常比数据文件小；⑨ all对于每个来自于先前的表的行组合,进行完整的表扫描</td>
+</tr>
+<tr>
+<td>possible_keys</td>
+<td>显示可能使用到的索引</td>
+</tr>
+<tr>
+<td>key</td>
+<td>显示mysql经过优化器评估最终使用的索引，如果没有选择索引，键是null</td>
+</tr>
+<tr>
+<td>key_len</td>
+<td>使用到的索引长度，若键为null则为null</td>
+</tr>
+<tr>
+<td>ref</td>
+<td>引用到上个表的列</td>
+</tr>
+<tr>
+<td>rows</td>
+<td>得到结果集需要扫描的记录数</td>
+</tr>
+<tr>
+<td>filtered</td>
+<td>存储引擎返回数据在server层过滤后， 剩下多少满足查询的记录数据比例</td>
+</tr>
+<tr>
+<td>Extra</td>
+<td>查询额外信息</td>
+</tr>
+</tbody>
+</table>
+<h2 id="索引下推">索引下推</h2>
+<p>在介绍索引下推之前，我们对上面的数据表增加一个 user_age 字段：</p>
+<p><strong>增加字段 user_age</strong>：</p>
+<pre><code>alter table `user` add column `user_age` smallint(5) not null default '0' comment '用户年龄';
+
+## 执行结果
+
+mysql&gt; alter table `user` add column `user_age` smallint(5) not null default '0' comment '用户年龄';
+Query OK, 0 rows affected, 1 warning (0.02 sec)
+Records: 0  Duplicates: 0  Warnings: 1
+</code></pre><p><strong>增加组合索引 name + age</strong>：</p>
+<pre><code>alter table `user` add index idx_name_age (`user_name`, `user_age`);
+
+## 执行结果
+
+mysql&gt; alter table `user` add index idx_name_age (`user_name`, `user_age`);
+Query OK, 0 rows affected (0.03 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+</code></pre><p><strong>查看表结构</strong>：</p>
+<pre><code>## 再看下表结构 已经新增了  user_age 字段 和 idx_name_age索引
+mysql&gt; show create table user\G
+*************************** 1. row ***************************
+       Table: user
+Create Table: CREATE TABLE `user` (
+  `user_id` int unsigned NOT NULL AUTO_INCREMENT COMMENT '用户id',
+  `user_name` varchar(125) NOT NULL DEFAULT '' COMMENT '用户昵称',
+  `user_pwd` varchar(64) NOT NULL DEFAULT '' COMMENT '用户密码',
+  `user_sex` tinyint(1) NOT NULL DEFAULT '0' COMMENT '用户性别 0-保密；1-男；2-女',
+  `create_at` int NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `user_age` smallint NOT NULL DEFAULT '0' COMMENT '用户年龄',
+  PRIMARY KEY (`user_id`),
+  KEY `idx_name_age` (`user_name`,`user_age`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户表'
+1 row in set (0.00 sec)
+</code></pre><h2 id="索引下推介绍">索引下推介绍</h2>
+<p>索引下推（index condition pushdown ）简称ICP，在Mysql5.6+的版本上推出，用于优化查询。索引下推在 <strong>非主键索引</strong> 上做合理的优化，可以有效减少回表的次数，同时可减少mysql服务器从存储引擎接收数据的次数，大大提升了查询的效率</p>
+<h2 id="未出现索引下推流程">未出现索引下推流程</h2>
+<p><img src="https://p1-tt.byteimg.com/origin/pgc-image/125a37c412c4480faf1a71413ff78145?from=pc" alt="百度Java后端二面：MySQL索引老大难问题，万字长文精讲总结"></p>
+<p>在没有索引下推之前，执行的过程是这样，例如执行以下sql：</p>
+<pre><code>## 根据用户昵称 + 年龄查询 相匹配的用户
+
+select * from user where `user_name` like '李%' and `age` = 26;
+
+因为上面已经建立了联合索引idx_name_age，所以要根据 最左匹配原则 优先匹配name索引进行查询，不然就会造成不走索引导致全表扫描
+</code></pre><p>先根据name<strong>索引从存储引擎中拉取数据</strong>，存储引擎通过索引检索到数据之后，通过<strong>不断一个个的回表</strong>到主键索引找出符合的数据记录，然后数据加载到 <strong>server</strong> 层，开始通过 user_age 条件<strong>过滤</strong>符合要求的数据。</p>
+<h2 id="未使用索引下推图3-1">未使用索引下推图3-1</h2>
+<p><img src="https://p3-tt.byteimg.com/origin/pgc-image/37de10d0e12a444ea5ab7aed21d04ad6?from=pc" alt="百度Java后端二面：MySQL索引老大难问题，万字长文精讲总结"></p>
+<p>从图中我们可以看出来：</p>
+<ul>
+<li>① 在查询数据时存储引擎会忽略age这个字段；</li>
+<li>② 直接通过 name 索引在 idx_name_age 这颗索引树上查询到3条符合要求的结果；</li>
+<li>③ 开始根据主键 user_id 回表查询age对应的值，共回表3次；</li>
+<li>④ 在server层通过age条件进行过滤，得到最终符合要求的结果集；</li>
+</ul>
+<h2 id="出现索引下推流程">出现索引下推流程</h2>
+<p><img src="https://p1-tt.byteimg.com/origin/pgc-image/a534b63134634ea28e022d3d34db7da8?from=pc" alt="百度Java后端二面：MySQL索引老大难问题，万字长文精讲总结"></p>
+<p>跟上图进行对比发现：在通过索引树拿到数据之后，就进行了索引下推操作，索引内部条件 过滤 符合数据结果。</p>
+<h2 id="使用索引下推图3-2">使用索引下推图3-2</h2>
+<p><img src="https://p6-tt.byteimg.com/origin/pgc-image/224ad9b75a9f4ba9bfc724febc3b0755?from=pc" alt="百度Java后端二面：MySQL索引老大难问题，万字长文精讲总结"></p>
+<p><strong>mysql5.6版本之后，增加索引下推，流程走向：</strong></p>
+<ul>
+<li>① 存储引擎通过 idx_name_age 查询，索引内部直接检测判断age值是否等于26，否则直接跳过；</li>
+<li>② 通过索引树查到匹配记录，通过主键id去主键索引树中回表查询对应字段值；</li>
+<li>③并不需要从存储引擎拉到数据在server层做过滤操作</li>
+</ul>
+<h2 id="实践操作">实践操作</h2>
+<p>实践前先插入几条数据：</p>
+<pre><code>## 插入数据
+
+mysql&gt; insert into `user`(`user_name`,`user_pwd`,`user_sex`,`user_age`,`create_at`) VALUES('李阿沐', '123', 1, 26, 1624182989),('李子柒', '123', 1, 31, 1624182989),('李佳琦', '123', 1, 29, 1624182989),('高火火', '123', 1, 25, 1624182989);
+Query OK, 4 rows affected (0.01 sec)
+Records: 4  Duplicates: 0  Warnings: 0
+
+## 查看下表数据 
+
+mysql&gt; select * from user;
++---------+-----------+----------+----------+------------+----------+
+| user_id | user_name | user_pwd | user_sex | create_at  | user_age |
++---------+-----------+----------+----------+------------+----------+
+|       1 | 李阿沐    | 123      |        1 | 1624182989 |       26 |
+|       2 | 李子柒    | 123      |        1 | 1624182989 |       31 |
+|       3 | 李佳琦    | 123      |        1 | 1624182989 |       29 |
+|       4 | 高火火    | 123      |        1 | 1624182989 |       25 |
++---------+-----------+----------+----------+------------+----------+
+4 rows in set (0.00 sec)
+</code></pre><p>mysql版本5.5下sql执行情况：</p>
+<pre><code>## 查看版本 5.5 小于5.6版本
+
+mysql&gt; select version();
++------------+
+| version()  |
++------------+
+| 5.5.19-log |
++------------+
+1 row in set (0.00 sec)
+
+## 查看执行explain结果集 图 1
+
+mysql&gt; explain select * from user where `user_name` like '李%' and `user_age` = 26;
++----+-------------+-------+------+---------------+------+---------+------+------+-------------+
+| id | select_type | table | type | possible_keys | key  | key_len | ref  | rows | Extra       |
++----+-------------+-------+------+---------------+------+---------+------+------+-------------+
+|  1 | SIMPLE      | user  | ALL  | idx_name_age  | NULL | NULL    | NULL |    4 | Using where |
++----+-------------+-------+------+---------------+------+---------+------+------+-------------+
+1 row in set (0.00 sec)
+
+## 另一个执行结果  图 2
+mysql&gt; explain select user_id,user_name from user where `user_name` like '李%' and `user_age` = 26;
++----+-------------+-------+-------+---------------+--------------+---------+------+------+--------------------------+
+| id | select_type | table | type  | possible_keys | key          | key_len | ref  | rows | Extra                    |
++----+-------------+-------+-------+---------------+--------------+---------+------+------+--------------------------+
+|  1 | SIMPLE      | user  | range | idx_name_age  | idx_name_age | 379     | NULL |    3 | Using where; Using index |
++----+-------------+-------+-------+---------------+--------------+---------+------+------+--------------------------+
+1 row in set (0.00 sec)
+</code></pre><p>不知道大家从上面是否看出来一个问题：它并不是走的索引下推而是 Using where；图1和图2存储引擎都是显示可能使用到的索引，但是图1并没有走索引并且全表扫描；而图2走了索引只扫描其中几条；所以可以得到一个结论：<strong>like查询百分号前置</strong>，<strong>并不是100%不会走索引</strong>。① 据量少直接回全表扫描；② 若只select索引字段，或者select索引字段和主键，会走索引的</p>
+<p>mysql版本5.6下sql执行情况：</p>
+<pre><code>## 一样先查看下mysql版本 8.0
+
+mysql&gt; select version();
++-----------+
+| version() |
++-----------+
+| 8.0.19    |
++-----------+
+1 row in set (0.00 sec)
+
+## 查看执行explain结果集
+
+mysql&gt; explain select * from user where `user_name` like '李%' and `user_age` = 26;
++----+-------------+-------+------------+-------+---------------+--------------+---------+------+------+----------+-----------------------+
+| id | select_type | table | partitions | type  | possible_keys | key          | key_len | ref  | rows | filtered | Extra                 |
++----+-------------+-------+------------+-------+---------------+--------------+---------+------+------+----------+-----------------------+
+|  1 | SIMPLE      | user  | NULL       | range | idx_name_age  | idx_name_age | 379     | NULL |    3 |    25.00 | Using index condition |
++----+-------------+-------+------------+-------+---------------+--------------+---------+------+------+----------+-----------------------+
+1 row in set, 1 warning (0.01 sec)
+</code></pre><p>小伙伴们是不是可以很清晰地看到： <strong>Extra = Using index condition</strong> 使用了索引下推。所以大家以后再写sql语句的时候，需要适当的根据 <strong>where条件</strong> 做合理的索引，尽量的使我们sql语句是最优状态；当然这也是我们公司经常要求的，而且发现不好的sql语句，会被拿出来做案例。</p>
+<h2 id="小小的总结下索引下推">小小的总结下索引下推</h2>
+<ul>
+<li>未使用索引下推优化：先根据索引查询记录，回表再根据where条件过滤</li>
+<li>使用索引下推优化：根据索引树获取记录的时，检测是否可以用where条件过滤数据在回表查询</li>
+</ul>
+<h2 id="最左匹配原则">最左匹配原则</h2>
+<p>面试中经常会被问到：假如表中设置了 (a, b, c)联合索引，那么你在sql查询使用 (a, c, b) 或者 (b, a, c)会不会继续走索引项呢？至少我面试中基本都会被问到，尤其是某些大厂！其实他们主要是想考察你最 <strong>最左匹配原则</strong> 是否理解原理。从而看出来你平常是否会对sql进行调优。</p>
+<h2 id="为什么要使用联合索引">为什么要使用联合索引</h2>
+<p>我们先修改表的联合索引字段：</p>
+<pre><code>## mysql没有提供修改索引的指令，可先删除原索引，新增一个新的索引，变相实现修改索引
+
+alter table `user` drop index idx_name_age;
+
+alter table `user` add index idx_name_age_sex ( `user_name`, `user_age`, `user_sex` );
+
+## 执行结果
+
+mysql&gt; alter table `user` drop index idx_name_age;
+Query OK, 0 rows affected (0.02 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+mysql&gt; alter table `user` add index idx_name_age_sex ( `user_name`, `user_age`, `user_sex` );
+Query OK, 0 rows affected (0.02 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+</code></pre><ul>
+<li>idx_name_age_sex联合索引，相当于三个索引：<strong>idx_name</strong>、<strong>idx_name_age</strong>、<strong>idx_age_sex</strong>，节省<strong>磁盘空间</strong>的开销和<strong>写操作</strong>开销</li>
+<li>若出现覆盖索引，select user_name,user_age,user_sex from xxx where xxx，则直接通过索引遍历获取数据，无序回表查询数据，<strong>减少IO操作和回表次数</strong></li>
+</ul>
+<p><strong>最左匹配原则</strong>：mysql创建联合索引时总会遵守最左匹配原则；从最左边为起点任何连续的索引都会被匹配成功；但是若查询时出现范围查询(like、&gt;、&lt;、between)会停止索引匹配。</p>
+<h2 id="全值匹配查询时">全值匹配查询时</h2>
+<p>name_age_sex 索引顺序</p>
+<pre><code>mysql&gt; explain select * from user where `user_name` = &quot;李阿沐&quot; and `user_age` = 26 and `user_sex` = 1;
++----+-------------+-------+------------+------+------------------+------------------+---------+-------------------+------+----------+-------+
+| id | select_type | table | partitions | type | possible_keys    | key              | key_len | ref               | rows | filtered | Extra |
++----+-------------+-------+------------+------+------------------+------------------+---------+-------------------+------+----------+-------+
+|  1 | SIMPLE      | user  | NULL       | ref  | idx_name_age_sex | idx_name_age_sex | 380     | const,const,const |    1 |   100.00 | NULL  |
++----+-------------+-------+------------+------+------------------+------------------+---------+-------------------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+</code></pre><p>name_sex_age 索引顺序</p>
+<pre><code>mysql&gt; explain select * from user where `user_name` = &quot;李阿沐&quot; and `user_sex` = 1 and `user_age` = 26;
++----+-------------+-------+------------+------+------------------+------------------+---------+-------------------+------+----------+-------+
+| id | select_type | table | partitions | type | possible_keys    | key              | key_len | ref               | rows | filtered | Extra |
++----+-------------+-------+------------+------+------------------+------------------+---------+-------------------+------+----------+-------+
+|  1 | SIMPLE      | user  | NULL       | ref  | idx_name_age_sex | idx_name_age_sex | 380     | const,const,const |    1 |   100.00 | NULL  |
++----+-------------+-------+------------+------+------------------+------------------+---------+-------------------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+</code></pre><p>sex_age_name 索引顺序</p>
+<pre><code>mysql&gt; explain select * from user where `user_sex` = 1 and `user_age` = 26 and `user_name` = &quot;李阿沐&quot;;
++----+-------------+-------+------------+------+------------------+------------------+---------+-------------------+------+----------+-------+
+| id | select_type | table | partitions | type | possible_keys    | key              | key_len | ref               | rows | filtered | Extra |
++----+-------------+-------+------------+------+------------------+------------------+---------+-------------------+------+----------+-------+
+|  1 | SIMPLE      | user  | NULL       | ref  | idx_name_age_sex | idx_name_age_sex | 380     | const,const,const |    1 |   100.00 | NULL  |
++----+-------------+-------+------------+------+------------------+------------------+---------+-------------------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+</code></pre><p>从上面看出来：三个查询 全部走了 idx_name_age_sex 联合索引。可能不能更好地看出到底走的是哪一种索引，我们可以通过观察 key_len 和 ref 这两个跟第一个是完全一致的。</p>
+<p>可能有小伙伴会有疑惑：“不应该走最左匹配嘛？怎么下面两个命名没有按照最左匹配却都走了索引？”</p>
+<p>其实我们不能忽略mysql本身的查询优化器啊，我们可以不需要规规矩矩地按照顺序去写where条件，因为查询优化器会自动检测这条sql，它以哪一种方式执行效率最高，最后才生成了真正的执行计划。</p>
+<h2 id="匹配左边的列时">匹配左边的列时</h2>
+<p>① 依次匹配 name</p>
+<pre><code>mysql&gt; explain select * from user where `user_name` = &quot;李阿沐&quot;;
++----+-------------+-------+------------+------+------------------+------------------+---------+-------+------+----------+-------+
+| id | select_type | table | partitions | type | possible_keys    | key              | key_len | ref   | rows | filtered | Extra |
++----+-------------+-------+------------+------+------------------+------------------+---------+-------+------+----------+-------+
+|  1 | SIMPLE      | user  | NULL       | ref  | idx_name_age_sex | idx_name_age_sex | 377     | const |    1 |   100.00 | NULL  |
++----+-------------+-------+------------+------+------------------+------------------+---------+-------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+</code></pre><p>从上图我们呢可以很清楚看到是遵循 最左匹配原则 使用了联合索引且使用的是其中的 name 索引，没有其他索引；看下key_len长度为(<strong>单位字节</strong>)：</p>
+<p>377=125∗3+2377 = 125*3 + 2377=125∗3+2</p>
+<p>刚刚好是 name 索引长度值。</p>
+<p>② 依次匹配 name_age</p>
+<pre><code>mysql&gt; explain select * from user where `user_name` = &quot;李阿沐&quot; and `user_age` = 26;
++----+-------------+-------+------------+------+------------------+------------------+---------+-------------+------+----------+-------+
+| id | select_type | table | partitions | type | possible_keys    | key              | key_len | ref         | rows | filtered | Extra |
++----+-------------+-------+------------+------+------------------+------------------+---------+-------------+------+----------+-------+
+|  1 | SIMPLE      | user  | NULL       | ref  | idx_name_age_sex | idx_name_age_sex | 379     | const,const |    1 |   100.00 | NULL  |
++----+-------------+-------+------------+------+------------------+------------------+---------+-------------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+</code></pre><p>从上图我们呢可以很清楚看到是遵循 从左往右依次匹配原则 使用了联合索引且使用的是其中的 name + age 索引，没有其他索引；看下key_len长度为(<strong>单位字节</strong>)：</p>
+<p>379=125∗3+2+2(smallint长度)379 = 125*3 + 2 + 2(smallint长度)379=125∗3+2+2(smallint长度)</p>
+<p>刚刚好是 name + age 索引长度值。</p>
+<p>③ 依次匹配 name_age_sex</p>
+<pre><code>mysql&gt; explain select * from user where `user_name` = &quot;李阿沐&quot; and `user_age` = 26 and `user_sex` = 1;
++----+-------------+-------+------------+------+------------------+------------------+---------+-------------------+------+----------+-------+
+| id | select_type | table | partitions | type | possible_keys    | key              | key_len | ref               | rows | filtered | Extra |
++----+-------------+-------+------------+------+------------------+------------------+---------+-------------------+------+----------+-------+
+|  1 | SIMPLE      | user  | NULL       | ref  | idx_name_age_sex | idx_name_age_sex | 380     | const,const,const |    1 |   100.00 | NULL  |
++----+-------------+-------+------------+------+------------------+------------------+---------+-------------------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+</code></pre><p>从上图我们呢可以很清楚看到是遵循 从左往右依次匹配原则 使用了联合索引且使用的是其中的 name + age 索引，没有其他索引；看下key_len长度为(<strong>单位字节</strong>)：</p>
+<p>380=125∗3+2+2(smallint长度)+1(tinyint长度)380 = 125*3 + 2 + 2(smallint长度) + 1(tinyint长度)380=125∗3+2+2(smallint长度)+1(tinyint长度)</p>
+<p>刚刚好是 name + age + age 索引长度值。</p>
+<p>④ 若不是依次匹配</p>
+<pre><code>mysql&gt; explain select * from user where `user_age` = 26;
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
+| id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra       |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
+|  1 | SIMPLE      | user  | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |    25.00 | Using where |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
+1 row in set, 1 warning (0.00 sec)
+</code></pre><p>由于上面都没有从最左边开始匹配，所以没有用到联合索引，使用的都是index全索引扫描。</p>
+<p>⑤ 补充下 索引长度计算方式</p>
+<pre><code>- 1.所有的索引字段，如果没有设置not null，则需要加一个字节 
+
+- 2.定长字段，int占四个字节、date占三个字节、char(n)占n个字符
+
+- 3.对于变成字段varchar(n)，则有n个字符+两个字节
+
+- 4.字符集不同则一个字符占用的字节数也不同；
+    utf8mb4 - 1字符占用4字节
+    utf8    - 1字符占用3字节
+    gbk     - 1字符占用2字节
+    latin1  - 1字符占用1字节
+</code></pre><p>这样是不是很清楚通过索引长度看出到底使用了哪几个索引：</p>
+<p>keylen=125(varchar类型3字节)∗3+2(额外加2字节)+2(smallint类型2字节)+1(tinyint类型1个字节)=380(字节)key_len = 125(varchar类型3字节)*3 + 2(额外加2字节) + 2(smallint类型2字节) + 1(tinyint类型1个字节) = 380(字节)keylen=125(varchar类型3字节)∗3+2(额外加2字节)+2(smallint类型2字节)+1(tinyint类型1个字节)=380(字节)</p>
+<h2 id="匹配列前缀">匹配列前缀</h2>
+<p>我们先看下下面三个sql语句最终的执行结果：</p>
+<p>① 前缀匹配</p>
+<pre><code>mysql&gt; explain select * from user where `user_name` like '李%';
++----+-------------+-------+------------+-------+------------------+------------------+---------+------+------+----------+-----------------------+
+| id | select_type | table | partitions | type  | possible_keys    | key              | key_len | ref  | rows | filtered | Extra                 |
++----+-------------+-------+------------+-------+------------------+------------------+---------+------+------+----------+-----------------------+
+|  1 | SIMPLE      | user  | NULL       | range | idx_name_age_sex | idx_name_age_sex | 377     | NULL |    3 |   100.00 | Using index condition |
++----+-------------+-------+------------+-------+------------------+------------------+---------+------+------+----------+-----------------------+
+1 row in set, 1 warning (0.00 sec)
+</code></pre><p>② 后缀匹配</p>
+<pre><code>mysql&gt; explain select * from user where `user_name` like '%李';
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
+| id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra       |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
+|  1 | SIMPLE      | user  | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |    25.00 | Using where |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
+1 row in set, 1 warning (0.00 sec)
+</code></pre><p>③ 中缀匹配</p>
+<pre><code>mysql&gt; explain select * from user where `user_name` like '%李%';
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
+| id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra       |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
+|  1 | SIMPLE      | user  | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    4 |    25.00 | Using where |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------------+
+1 row in set, 1 warning (0.00 sec)
+</code></pre><p>从上面执行结果可以看出：第一个前缀已经排好序的，所以走索引查询；第二个第三个则是全表扫描查询</p>
+<p>注意：若列是字符串则比较规则是这样的；先比较字符串第一个字符，若相同则继续比较第二个字符，以此类推下去。</p>
+<h2 id="匹配范围值">匹配范围值</h2>
+<pre><code>## 最左查询 这里是新增了一列联合索引 删除之前的那个 便于测试
+mysql&gt; explain select * from user where `user_age` &gt; 1 and `user_age` &lt; 30;
++----+-------------+-------+------------+-------+---------------+-------------+---------+------+------+----------+-----------------------+
+| id | select_type | table | partitions | type  | possible_keys | key         | key_len | ref  | rows | filtered | Extra                 |
++----+-------------+-------+------------+-------+---------------+-------------+---------+------+------+----------+-----------------------+
+|  1 | SIMPLE      | user  | NULL       | range | idx_age_sex   | idx_age_sex | 2       | NULL |    3 |   100.00 | Using index condition |
++----+-------------+-------+------------+-------+---------------+-------------+---------+------+------+----------+-----------------------+
+1 row in set, 1 warning (0.00 sec)
+
+## 在user_age&gt;1 and user_age &lt; 30的范围中，sex是有序的，所以使用的是rang范围查询
+mysql&gt; explain select * from user where `user_age` &gt; 1 and `user_age` &lt; 30 and `user_sex` &gt; 0;
++----+-------------+-------+------------+-------+---------------+-------------+---------+------+------+----------+-----------------------+
+| id | select_type | table | partitions | type  | possible_keys | key         | key_len | ref  | rows | filtered | Extra                 |
++----+-------------+-------+------------+-------+---------------+-------------+---------+------+------+----------+-----------------------+
+|  1 | SIMPLE      | user  | NULL       | range | idx_age_sex   | idx_age_sex | 2       | NULL |    3 |    33.33 | Using index condition |
++----+-------------+-------+------------+-------+---------------+-------------+---------+------+------+----------+-----------------------+
+1 row in set, 1 warning (0.00 sec)
+</code></pre><p>结论：多个列进行范围查询时，只有最左边列查询时才使用了索引；若在 1&lt;age&lt;20 范围中sex是有序的，则使用的是rang范围查询；否则无序只能等 age 查询到记录后 通过 sex &gt; 0 逐条过滤。</p>
+<h2 id="精确匹配某一列并范围匹配另外一列">精确匹配某一列并范围匹配另外一列</h2>
+<pre><code>## 如果左边的列是精确查找的，右边的列可以进行范围查找
+mysql&gt; explain select * from user where `user_name` = &quot;李阿沐&quot; and `user_age` &lt; 29;
++----+-------------+-------+------------+-------+------------------------------+------------------+---------+------+------+----------+-----------------------+
+| id | select_type | table | partitions | type  | possible_keys                | key              | key_len | ref  | rows | filtered | Extra                 |
++----+-------------+-------+------------+-------+------------------------------+------------------+---------+------+------+----------+-----------------------+
+|  1 | SIMPLE      | user  | NULL       | range | idx_name_age_sex,idx_age_sex | idx_name_age_sex | 379     | NULL |    1 |   100.00 | Using index condition |
++----+-------------+-------+------------+-------+------------------------------+------------------+---------+------+------+----------+-----------------------+
+1 row in set, 1 warning (0.01 sec)
+</code></pre><p>通过上面可以看出，左列值精确查找，左边值是有序的进行范围查找会走联合索引。当然可以通过key_len长度可以看出来：</p>
+<p>keylen=125∗3+2+2=377+2=399key_len = 125*3 + 2 + 2 = 377 + 2 = 399keylen=125∗3+2+2=377+2=399</p>
+<h2 id="回表">回表</h2>
+<p>什么是回表查询：简单来说就是查询时获取的列有大量的非索引列，这个时候根据主键索引树去表中知道相关列的值信息，而这个操作就叫做 <strong>回表</strong>。</p>
+<p>我们看下下面两个sql语句：</p>
+<pre><code>## 无需回表，因为select列全部是索引列
+
+select user_id, user_name from user where `user_name` = &quot;李阿沐&quot;;
+
+或者
+
+select * from user where `user_id` = 1;
+不回表原因：根据主键ID查询，只需要在主键b+tree上搜索数据即可。
+
+## 需要回表，因为select列出现非索引列，需要根据主键索引到表中查询信息;实际上使用了两次索引查询
+
+select user_id, user_name, user_pwd from user where `user_name` = &quot;李阿沐&quot;;
+</code></pre><p>为什么要尽量减少回表操作，尤其是当表的数据量越来越大的时候？</p>
+<p>例如：现在我们通过 idx_name_age 索引扫描到了 10w 条数据，通过索引查询到主键索引在回表去查询相关列信息；mysql会认为每一次的回表都需要一次单独的 I/O 操作成本.</p>
+<h2 id="索引查询成本">索引查询成本</h2>
+<ul>
+<li>CPU操作成本</li>
+</ul>
+<p>result=100000∗0.2=20000result = 100000 * 0.2 = 20000result=100000∗0.2=20000</p>
+<ul>
+<li>I/O操作成本</li>
+</ul>
+<p>result=100000∗1=100000result = 100000 * 1 = 100000result=100000∗1=100000</p>
+<ul>
+<li>两次操作的成本数</li>
+</ul>
+<p>result=20000+100000=120000result = 20000 + 100000 = 120000result=20000+100000=120000</p>
+<h2 id="全表扫描查询成本">全表扫描查询成本</h2>
+<pre><code>mysql&gt; SELECT TABLE_NAME,DATA_LENGTH,INDEX_LENGTH,(DATA_LENGTH+INDEX_LENGTH) as length,TABLE_ROWS,concat(round((DATA_LENGTH+INDEX_LENGTH)/1024/1024,3), 'MB') as total_size FROM information_schema.TABLES WHERE TABLE_SCHEMA='test' order by length desc;
++------------+-------------+--------------+--------+------------+------------+
+| TABLE_NAME | DATA_LENGTH | INDEX_LENGTH | length | TABLE_ROWS | total_size |
++------------+-------------+--------------+--------+------------+------------+
+| test       |       16384 |        16384 |  32768 |          3 | 0.031MB    |
+| user       |       16384 |        16384 |  32768 |          4 | 0.031MB    |
++------------+-------------+--------------+--------+------------+------------+
+2 rows in set (0.01 sec)
+
+通过 命令 查看全表的字节数 user表 Data_length = 16384 
+</code></pre><p>从上面可以计算出全表扫描需要读取多少记录页：</p>
+<p>page=16384/1024/16=1page = 16384 / 1024 / 16 = 1page=16384/1024/16=1</p>
+<p>可以看出我本地的记录页太少了；假设本地全表有 16384000 个字节，表内有 300000 条记录；那么我们需要扫描1000个记录页；现在算下成本：</p>
+<p>result=CPU成本(300000∗0.2=60000)+I/O成本(1000∗1=1000)=61000result = CPU成本(300000<em>0.2=60000) + I/O成本(1000</em>1 = 1000) = 61000result=CPU成本(300000∗0.2=60000)+I/O成本(1000∗1=1000)=61000</p>
+<p>这样看起来有时候会出现 回表操作查询比全表扫描更消耗性能；所以我们在做业务需求时，先预估表的量，再合理的构建索引，并且通过explain解析看下具体性能。</p>
+<h2 id="查询成本组成与计算">查询成本组成与计算</h2>
+<ul>
+<li>CPU成本</li>
+<li>I/O成本</li>
+<li>要清楚mysql规定读取一个页面的成本是 1.0 并不是随意写的；读取和检测记录是否使用索引的成本是 0.2</li>
+<li>注意：不管记录是否检测满足索引条件，成本都是 0.2；记住就行了</li>
+</ul>
+<p>所以上面大家可以看清楚回表的计算逻辑了，如下：</p>
+<p>回表成本=CPU成本(记录数∗0.2)+I/O成本(记录页数∗1)回表成本 = CPU成本(记录数 * 0.2) + I/O成本(记录页数 * 1)回表成本=CPU成本(记录数∗0.2)+I/O成本(记录页数∗1)</p>
+<h2 id="小小总结">小小总结</h2>
+<p>使用聚集索引（主键或第一个唯一索引）就不会回表，普通索引就会回表。</p>
+<p>尽量减少回表查询降低查询成本：① 能用主键索引或唯一索引的就不用辅助索引；② 可以使用覆盖索引</p>
+
+    </div>
+    <div class="post-footer">
+      
+    </div>
+  </article>
+
+    </main>
+  </body>
+</html>
