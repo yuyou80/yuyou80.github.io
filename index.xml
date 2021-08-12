@@ -155,5 +155,16 @@ Follow the following steps:
       <description>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent lacinia lorem quis sodales auctor. Donec bibendum odio leo, bibendum iaculis lectus dapibus sit amet. Etiam ut euismod lectus, vel finibus metus. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Integer quis vestibulum justo. Duis scelerisque ullamcorper sem, eget congue lorem ultrices mattis. Nam ut mollis tellus, id facilisis turpis. Duis ac egestas mi, a mattis dolor. Curabitur vestibulum est nec tortor hendrerit, vehicula malesuada quam tempor.</description>
     </item>
     
+    <item>
+      <title>新榜mysql规约</title>
+      <link>https://yuyou80.github.io/posts/%E6%96%B0%E6%A6%9Cmysql%E8%A7%84%E7%BA%A6-/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>https://yuyou80.github.io/posts/%E6%96%B0%E6%A6%9Cmysql%E8%A7%84%E7%BA%A6-/</guid>
+      <description>新榜mysql规约** 概要 想要发挥 MySQL 的最佳性能，需要遵循 3 个基本使用原则：
+ 首先是需要让 MySQL 回归存储的基本职能：MySQL 数据库只用于数据的存储，不进行数据的复杂计算，不承载业务逻辑，确保存储和计算分离； 其次是查询数据时，尽量单表查询，减少跨库查询和多表关联； 还有就是要杜绝大事务、大 SQL、大批量、大字段等一系列性能杀手。 • 大事务，运行步骤较多，涉及的表和字段较多，容易造成资源的争抢，甚至形成死锁。一旦事务回滚，会导致资源占用时间过长。 • 大 SQL，复杂的 SQL 意味着过多的表的关联，MySQL 数据库处理关联超过 3 张表以上的 SQL 时，占用资源多，性能低下。 • 大批量，意味着多条 SQL 一次性执行完成，必须确保进行充分的测试，并且在业务低峰时段或者非业务时段执行。 • 大字段，blob、text 等大字段，尽量少用。必须要用时，尽量与主业务表分离，减少对这类字段的检索和更新。  强制遵循规约 建库规约  【强制】数据库库名的命名规则必须遵循“见名知意”的原则,命名时的字符取值范围为：a~z，0~9 和 _（下画线，即库名规则为“数据库类型代码 + (项目简称)+ 识别代码 + 序号”。当库已项目拆分的时候增加项目简称，ad_zmb(广告系统自媒体宝业务正式库)  正例：这样包含了更多的业务信息，比如：
+   广告系统业务生产库：ad、ad1、ad2； 广告系统业务开发库：ad_dev、ad_dev1、ad_dev2； 广告系统业务测试库：ad_test、ad_test1、ad_test2； 只有一个数据库，则不加序号，否则末尾增加序号； 生产库不加识别代码，否则需要增加识别代码 dev或 test； 如果只作历史库，则只需要项目简称 +h+ 序号: ad_h；    建表规约  【强制】表达是与否概念的字段，必须使用 is_xxx 的方式命名，数据类型是 unsigned tinyint（1 表示是，0 表示否）。  说明：任何字段如果为非负数，必须是 unsigned。</description>
+    </item>
+    
   </channel>
 </rss>
